@@ -368,7 +368,7 @@ async def _render_browse(query, code: str, page: int, context: ContextTypes.DEFA
         page = min(page, pages - 1)
         items = repository(context).audio_kirtans(offset=page * PAGE_SIZE, limit=PAGE_SIZE)
         keyboard = kirtan_list(items, "m:home", "b:a", page, pages)
-        await _quiet_edit(query, f"<b>🎧 Kirtans with audio</b> ({total} · page {page + 1}/{pages})", keyboard)
+        await _quiet_edit(query, f"<b>Kirtans with audio</b> ({total} · page {page + 1}/{pages})", keyboard)
         return
     if code not in CATEGORY_CODES:
         return

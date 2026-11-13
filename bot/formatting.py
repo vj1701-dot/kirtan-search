@@ -34,26 +34,45 @@ def _is_tek(pad: str) -> bool:
     )
 
 
-def _lyrics_blocks(text: str, language: str) -> list[str]:
+SOURCE_PAD_LABEL = re.compile(r"(?:પદ|Pad|पद)\s*-\s*[0-9૦-૯०-९]+", re.IGNORECASE)
+
+
+def clean_source_text(text: str) -> tuple[str, list[str]]:
+    """Remove source-only pad labels and turn alternative readings into notes."""
+    pads: list[str] = []
+    notes: list[str] = []
+    for pad in text.split("\n\n"):
+        stripped = pad.strip()
+        if SOURCE_PAD_LABEL.fullmatch(stripped):
+            continue
+        if stripped.startswith(("†", "‡")):
+            note = stripped.lstrip("†‡").strip()
+            if note:
+                notes.append(note)
+            continue
+        cleaned = pad.replace("†", "").replace("‡", "").strip()
+        if cleaned:
+            pads.append(cleaned)
+    return "\n\n".join(pads), notes
+
+
+def _lyrics_block(text: str, language: str) -> str:
     pads = text.split("\n\n") if text else []
     first_is_tek = len(pads) > 1 and _is_tek(pads[0])
-    blocks: list[str] = []
+    sections: list[str] = []
     number = 0
     for index, pad in enumerate(pads):
         tek = index == 0 and first_is_tek
         if not tek:
             number += 1
         label = _pad_number(number, language, tek)
-        blocks.append(f"<blockquote><b>{label}</b>\n{esc(pad)}</blockquote>")
-    return blocks
+        sections.append(f"<b>{label}</b>\n{esc(pad)}")
+    body = "\n\n".join(sections)
+    return f"<blockquote>\n{body}</blockquote>"
 
 
-def _translation_blocks(text: str) -> list[str]:
-    blocks: list[str] = []
-    for index, pad in enumerate(text.split("\n\n")):
-        heading = "<b>English translation</b>\n" if index == 0 else ""
-        blocks.append(f"<blockquote expandable>{heading}{esc(pad)}</blockquote>")
-    return blocks
+def _translation_block(text: str) -> str:
+    return f"<blockquote expandable><b>English translation</b>\n{esc(text)}</blockquote>"
 
 
 def _fit_blockquote(block: str, header: str, footer: str, limit: int) -> list[str]:
@@ -118,17 +137,21 @@ def format_kirtan(kirtan: Kirtan, language: str, *, limit: int = TELEGRAM_LIMIT)
     header = f"<b>#{esc(kirtan.summary.number_label)} · {esc(title)}</b>"
     metadata = []
     if kirtan.writer:
-        metadata.append(f"✍️ {kirtan.writer}")
+        metadata.append(f"Writer: {kirtan.writer}")
     if kirtan.raag:
-        metadata.append(f"🎵 {kirtan.raag}")
+        metadata.append(f"Raag: {kirtan.raag}")
     if kirtan.categories:
-        metadata.append(f"📂 {', '.join(kirtan.categories)}")
+        metadata.append(f"Category: {', '.join(kirtan.categories)}")
     if metadata:
         header += f"\n<i>{esc(' · '.join(metadata))}</i>"
 
-    blocks = _lyrics_blocks(kirtan.texts[language], language)
+    cleaned_text, notes = clean_source_text(kirtan.texts[language])
+    blocks = [_lyrics_block(cleaned_text, language)]
+    if notes:
+        label = "Alternative reading" if len(notes) == 1 else "Alternative readings"
+        blocks.append(f"<i>{esc(label)}: {esc('; '.join(notes))}</i>")
     if language != "en_translation" and kirtan.texts.get("en_translation"):
-        blocks.extend(_translation_blocks(kirtan.texts["en_translation"]))
+        blocks.append(_translation_block(kirtan.texts["en_translation"]))
     footer = (
         f'<i>Source: <a href="{esc(kirtan.source_url)}">anirdesh.com</a></i>'
     )

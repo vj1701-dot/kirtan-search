@@ -52,7 +52,7 @@ def test_long_kirtan_splits_at_pad_boundaries_and_valid_html() -> None:
         assert "Writer &amp; &lt;unsafe&gt;" in part
         assert "Title &lt;Gujarati&gt;" in part
         assert '<a href="https://example.test/?a=1&amp;b=2">anirdesh.com</a>' in part
-    assert "<blockquote><b>ટેક</b>" in parts[0]
+    assert "<blockquote>\n<b>ટેક</b>" in parts[0]
     assert "<blockquote expandable>" in "".join(parts)
 
 
@@ -95,3 +95,29 @@ def test_lyric_snippet_is_bold_and_escaped() -> None:
     assert "<b>Aaj</b>" in output
     assert "&lt;mare&gt;" in output
     assert "<mare>" not in output
+
+
+def test_one_lyric_quote_and_clean_alternative_reading_note() -> None:
+    summary = KirtanSummary(1, 1, 489, "મારા હરજી", "Mara harji")
+    kirtan = Kirtan(
+        summary, "Narsinha Mehta", "", "https://example.test/1-489",
+        texts={"gu": (
+            "પદ - ૧\n\nમારા હરજી... ꠶ટેક\n\n"
+            "જાહ્‌નવી તીરે† તરંગ... તેને꠶ ૧\n\n†કેરા"
+        )},
+    )
+    parts = format_kirtan(kirtan, "gu")
+    assert len(parts) == 1
+    assert parts[0].count("<blockquote") == 1
+    assert "પદ - ૧" not in parts[0]
+    assert "†" not in parts[0]
+    assert "તીરે તરંગ" in parts[0]
+    assert "<i>Alternative reading: કેરા</i>" in parts[0]
+    assert "<blockquote>\n<b>ટેક</b>" in parts[0]
+
+
+def test_translation_uses_one_expandable_quote() -> None:
+    parts = format_kirtan(long_kirtan(3), "gu")
+    assert parts[0].count("<blockquote") == 2
+    assert parts[0].count("<blockquote expandable>") == 1
+    assert "Meaning one\n\nMeaning two" in parts[0]

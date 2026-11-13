@@ -18,13 +18,13 @@ from bot.models import (
 
 def main_menu() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup([
-        [InlineKeyboardButton("🔍 Search", callback_data="m:search")],
-        [InlineKeyboardButton("📂 Categories", callback_data="b:c:0"),
-         InlineKeyboardButton("🎉 Utsavs", callback_data="b:u:0")],
-        [InlineKeyboardButton("✍️ Writers", callback_data="b:w:0"),
-         InlineKeyboardButton("🎵 Raag", callback_data="b:r:0")],
-        [InlineKeyboardButton("🎧 With audio", callback_data="b:a:0")],
-        [InlineKeyboardButton("⚙️ Language", callback_data="m:lang")],
+        [InlineKeyboardButton("Search", callback_data="m:search")],
+        [InlineKeyboardButton("Categories", callback_data="b:c:0"),
+         InlineKeyboardButton("Utsavs", callback_data="b:u:0")],
+        [InlineKeyboardButton("Writers", callback_data="b:w:0"),
+         InlineKeyboardButton("Raag", callback_data="b:r:0")],
+        [InlineKeyboardButton("With audio", callback_data="b:a:0")],
+        [InlineKeyboardButton("Language", callback_data="m:lang")],
     ])
 
 
@@ -32,32 +32,32 @@ def language_menu() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup([
         [InlineKeyboardButton(LANGUAGE_LABELS[language], callback_data=f"g:{language}")]
         for language in LANGUAGES
-    ] + [[InlineKeyboardButton("🔙 Back", callback_data="m:home")]])
+    ] + [[InlineKeyboardButton("Back", callback_data="m:home")]])
 
 
 def kirtan_view(kirtan: Kirtan, current: str, *, has_previous: bool, has_next: bool) -> InlineKeyboardMarkup:
     rows = [[
         InlineKeyboardButton(
-            f"✅ {LANGUAGE_LABELS[language]}" if language == current else LANGUAGE_LABELS[language],
+            f"Current: {LANGUAGE_LABELS[language]}" if language == current else LANGUAGE_LABELS[language],
             callback_data=f"k:{kirtan.id}:{language}",
         ) for language in LANGUAGES if language in kirtan.texts
     ]]
     media_buttons: list[InlineKeyboardButton] = []
     for link in kirtan.media:
         if link.type == "audio":
-            media_buttons.append(InlineKeyboardButton("🎧 Listen", url=link.url))
+            media_buttons.append(InlineKeyboardButton("Listen", url=link.url))
         elif link.type == "video":
-            media_buttons.append(InlineKeyboardButton("📺 Watch", url=link.url))
+            media_buttons.append(InlineKeyboardButton("Watch", url=link.url))
     for index in range(0, len(media_buttons), 2):
         rows.append(media_buttons[index:index + 2])
     navigation: list[InlineKeyboardButton] = []
     if has_previous:
-        navigation.append(InlineKeyboardButton("⏮ Prev kirtan", callback_data=f"p:{kirtan.id}:{current}"))
+        navigation.append(InlineKeyboardButton("Prev kirtan", callback_data=f"p:{kirtan.id}:{current}"))
     if has_next:
-        navigation.append(InlineKeyboardButton("Next kirtan ⏭", callback_data=f"n:{kirtan.id}:{current}"))
+        navigation.append(InlineKeyboardButton("Next kirtan", callback_data=f"n:{kirtan.id}:{current}"))
     if navigation:
         rows.append(navigation)
-    rows.append([InlineKeyboardButton("🔙 Main menu", callback_data="m:home")])
+    rows.append([InlineKeyboardButton("Main menu", callback_data="m:home")])
     return InlineKeyboardMarkup(rows)
 
 
@@ -66,12 +66,12 @@ def search_results(hits: Sequence[SearchHit], session_id: str, page: int, page_c
             for hit in hits]
     navigation: list[InlineKeyboardButton] = []
     if page > 0:
-        navigation.append(InlineKeyboardButton("◀️ Prev", callback_data=f"s:{session_id}:p{page - 1}"))
+        navigation.append(InlineKeyboardButton("Prev", callback_data=f"s:{session_id}:p{page - 1}"))
     if page + 1 < page_count:
-        navigation.append(InlineKeyboardButton("Next ▶️", callback_data=f"s:{session_id}:p{page + 1}"))
+        navigation.append(InlineKeyboardButton("Next", callback_data=f"s:{session_id}:p{page + 1}"))
     if navigation:
         rows.append(navigation)
-    rows.append([InlineKeyboardButton("🔙 Main menu", callback_data="m:home")])
+    rows.append([InlineKeyboardButton("Main menu", callback_data="m:home")])
     return InlineKeyboardMarkup(rows)
 
 
@@ -88,12 +88,12 @@ def kirtan_list(
     rows = [[InlineKeyboardButton(item.button_label, callback_data=f"k:{item.id}")] for item in kirtans]
     navigation: list[InlineKeyboardButton] = []
     if page > 0:
-        navigation.append(InlineKeyboardButton("◀️ Prev", callback_data=f"{page_callback}:p{page - 1}"))
+        navigation.append(InlineKeyboardButton("Prev", callback_data=f"{page_callback}:p{page - 1}"))
     if page + 1 < page_count:
-        navigation.append(InlineKeyboardButton("Next ▶️", callback_data=f"{page_callback}:p{page + 1}"))
+        navigation.append(InlineKeyboardButton("Next", callback_data=f"{page_callback}:p{page + 1}"))
     if navigation:
         rows.append(navigation)
-    rows.append([InlineKeyboardButton("🔙 Back", callback_data=back_callback)])
+    rows.append([InlineKeyboardButton("Back", callback_data=back_callback)])
     return InlineKeyboardMarkup(rows)
 
 
@@ -102,10 +102,10 @@ def _with_navigation(
 ) -> InlineKeyboardMarkup:
     navigation: list[InlineKeyboardButton] = []
     if page > 0:
-        navigation.append(InlineKeyboardButton("◀️ Prev", callback_data=f"{prefix}:p{page - 1}"))
+        navigation.append(InlineKeyboardButton("Prev", callback_data=f"{prefix}:p{page - 1}"))
     if page + 1 < page_count:
-        navigation.append(InlineKeyboardButton("Next ▶️", callback_data=f"{prefix}:p{page + 1}"))
+        navigation.append(InlineKeyboardButton("Next", callback_data=f"{prefix}:p{page + 1}"))
     if navigation:
         rows.append(navigation)
-    rows.append([InlineKeyboardButton("🔙 Back", callback_data="m:home")])
+    rows.append([InlineKeyboardButton("Back", callback_data="m:home")])
     return InlineKeyboardMarkup(rows)

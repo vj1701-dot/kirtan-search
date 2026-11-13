@@ -1,3 +1,5 @@
+import unicodedata
+
 from bot.database import KirtanRepository
 from bot.keyboards import (
     category_items,
@@ -27,6 +29,9 @@ def test_every_callback_is_short_and_available_languages_only(repository: Kirtan
     for markup in markups:
         for callback_data in all_callback_data(markup):
             assert len(callback_data.encode()) <= 64
+        for row in markup.inline_keyboard:
+            for button in row:
+                assert all(unicodedata.category(char) != "So" for char in button.text)
     language_callbacks = all_callback_data(kirtan_view(kirtan, "gu", has_previous=False, has_next=False))
     assert "k:1:gu" in language_callbacks
     assert "k:1:en_translation" in language_callbacks

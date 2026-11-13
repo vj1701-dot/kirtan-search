@@ -104,7 +104,7 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
     try:
         await context.bot.send_message(
             settings.admin_chat_id,
-            f"⚠️ <b>Bot error</b>: <code>{esc(type(error).__name__)}</code>\n"
+            f"<b>Bot error</b>: <code>{esc(type(error).__name__)}</code>\n"
             "See container logs for the full traceback.",
             parse_mode="HTML",
         )
