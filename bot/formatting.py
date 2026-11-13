@@ -9,7 +9,6 @@ from bot.models import Kirtan, SearchHit
 from bot.search import highlight_line
 
 TELEGRAM_LIMIT = 4096
-GUJARATI_DIGITS = str.maketrans("0123456789", "૦૧૨૩૪૫૬૭૮૯")
 
 
 class MessageTooLongError(ValueError):
@@ -18,20 +17,6 @@ class MessageTooLongError(ValueError):
 
 def esc(value: object) -> str:
     return html.escape(str(value), quote=True)
-
-
-def _pad_number(index: int, language: str, tek: bool) -> str:
-    if tek:
-        return "ટેક" if language == "gu" else "Tek"
-    value = str(index)
-    return value.translate(GUJARATI_DIGITS) if language == "gu" else value
-
-
-def _is_tek(pad: str) -> bool:
-    return any(
-        line.strip().casefold().endswith(("ટેક", "टेक", "ṭek", "tek"))
-        for line in pad.splitlines()
-    )
 
 
 SOURCE_PAD_LABEL = re.compile(r"(?:પદ|Pad|पद)\s*-\s*[0-9૦-૯०-९]+", re.IGNORECASE)
@@ -56,18 +41,8 @@ def clean_source_text(text: str) -> tuple[str, list[str]]:
     return "\n\n".join(pads), notes
 
 
-def _lyrics_block(text: str, language: str) -> str:
-    pads = text.split("\n\n") if text else []
-    first_is_tek = len(pads) > 1 and _is_tek(pads[0])
-    sections: list[str] = []
-    number = 0
-    for index, pad in enumerate(pads):
-        tek = index == 0 and first_is_tek
-        if not tek:
-            number += 1
-        label = _pad_number(number, language, tek)
-        sections.append(f"<b>{label}</b>\n{esc(pad)}")
-    body = "\n\n".join(sections)
+def _lyrics_block(text: str) -> str:
+    body = "\n\n".join(esc(pad) for pad in text.split("\n\n") if pad)
     return f"<blockquote>\n{body}</blockquote>"
 
 
@@ -143,10 +118,10 @@ def format_kirtan(kirtan: Kirtan, language: str, *, limit: int = TELEGRAM_LIMIT)
     if kirtan.categories:
         metadata.append(f"Category: {', '.join(kirtan.categories)}")
     if metadata:
-        header += f"\n<i>{esc(' · '.join(metadata))}</i>"
+        header += "".join(f"\n<i>{esc(item)}</i>" for item in metadata)
 
     cleaned_text, notes = clean_source_text(kirtan.texts[language])
-    blocks = [_lyrics_block(cleaned_text, language)]
+    blocks = [_lyrics_block(cleaned_text)]
     if notes:
         label = "Alternative reading" if len(notes) == 1 else "Alternative readings"
         blocks.append(f"<i>{esc(label)}: {esc('; '.join(notes))}</i>")

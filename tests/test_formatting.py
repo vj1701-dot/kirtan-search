@@ -52,7 +52,7 @@ def test_long_kirtan_splits_at_pad_boundaries_and_valid_html() -> None:
         assert "Writer &amp; &lt;unsafe&gt;" in part
         assert "Title &lt;Gujarati&gt;" in part
         assert '<a href="https://example.test/?a=1&amp;b=2">anirdesh.com</a>' in part
-    assert "<blockquote>\n<b>ટેક</b>" in parts[0]
+    assert "પદ... ꠶ટેક" in parts[0]
     assert "<blockquote expandable>" in "".join(parts)
 
 
@@ -61,7 +61,7 @@ def test_current_translation_does_not_duplicate_expandable_translation() -> None
     parts = format_kirtan(kirtan, "en_translation")
     assert len(parts) == 1
     assert "expandable" not in parts[0]
-    assert "<b>1</b>" in parts[0]
+    assert "Meaning one" in parts[0]
 
 
 def test_single_oversized_pad_is_rejected_not_broken() -> None:
@@ -105,6 +105,7 @@ def test_one_lyric_quote_and_clean_alternative_reading_note() -> None:
             "પદ - ૧\n\nમારા હરજી... ꠶ટેક\n\n"
             "જાહ્‌નવી તીરે† તરંગ... તેને꠶ ૧\n\n†કેરા"
         )},
+        categories=["Updeshna Pad"],
     )
     parts = format_kirtan(kirtan, "gu")
     assert len(parts) == 1
@@ -113,7 +114,8 @@ def test_one_lyric_quote_and_clean_alternative_reading_note() -> None:
     assert "†" not in parts[0]
     assert "તીરે તરંગ" in parts[0]
     assert "<i>Alternative reading: કેરા</i>" in parts[0]
-    assert "<blockquote>\n<b>ટેક</b>" in parts[0]
+    assert "મારા હરજી... ꠶ટેક" in parts[0]
+    assert "<i>Writer: Narsinha Mehta</i>\n<i>Category: Updeshna Pad</i>" in parts[0]
 
 
 def test_translation_uses_one_expandable_quote() -> None:
@@ -121,3 +123,14 @@ def test_translation_uses_one_expandable_quote() -> None:
     assert parts[0].count("<blockquote") == 2
     assert parts[0].count("<blockquote expandable>") == 1
     assert "Meaning one\n\nMeaning two" in parts[0]
+
+
+def test_source_heading_has_no_generated_stanza_numbers() -> None:
+    kirtan = long_kirtan(1)
+    kirtan.texts = {"en_translit": "Diwāḷī (Āso vad - 30)\n\nRāj māre din din Diwāḷī re... jī 1"}
+    output = format_kirtan(kirtan, "en_translit")[0]
+    assert "<blockquote>\nDiwāḷī (Āso vad - 30)" in output
+    assert "Rāj māre din din Diwāḷī re... jī 1" in output
+    assert "<b>1</b>" not in output
+    assert "<b>2</b>" not in output
+    assert "<i>Writer: Writer &amp; &lt;unsafe&gt;</i>\n<i>Raag: Raag</i>\n<i>Category: Category &lt;One&gt;</i>" in output

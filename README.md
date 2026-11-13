@@ -117,7 +117,7 @@ A `docker-compose.yml` with a named `kirtan-state` volume is also included for C
 
 ## Reliability notes
 
-- The kirtan view uses one lyric blockquote per message and one collapsed translation blockquote. Pad numbers remain inside the lyric quote; source pad labels and dagger markers are cleaned, and alternative readings appear as compact notes. Bot buttons and metadata use plain text without emoji.
+- The kirtan view uses one lyric blockquote per message and one collapsed translation blockquote. Generated stanza numbers are omitted; source lyric endings remain unchanged. Writer, raag, and category use separate lines. Source pad labels and dagger markers are cleaned, alternative readings appear as compact notes, and bot buttons contain no emoji.
 - Telegram HTML is escaped with `html.escape()` for every scraped string. Message splitting never cuts inside a `<blockquote>`. Three real source pads exceed Telegram's limit even as complete pads, so the formatter preserves their content by splitting at original newlines into complete, balanced continuation blockquotes; a single original line over the limit is rejected rather than corrupted.
 - Language changes and previous/next navigation edit existing messages; multi-part views are edited part by part and controls stay on the last part.
 - `message is not modified` is ignored. Other unexpected exceptions log a full traceback and alert `ADMIN_CHAT_ID` at most once per minute.
