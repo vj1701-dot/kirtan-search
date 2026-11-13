@@ -1,0 +1,12 @@
+services:
+  bot:
+    build: .
+    env_file:
+      - path: .env
+        required: false
+    restart: unless-stopped
+    volumes:
+      - kirtan-state:/app/state
+
+volumes:
+  kirtan-state:

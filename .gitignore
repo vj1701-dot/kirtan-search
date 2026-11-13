@@ -1,0 +1,12 @@
+.env
+.venv/
+.pytest_cache/
+scraper/
+state/
+__pycache__/
+*.py[cod]
+*.db-wal
+*.db-shm
+.DS_Store
+
+# data/kirtans.db is intentionally committed.
